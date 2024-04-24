@@ -12,18 +12,17 @@ plugins {
 }
 
 android {
-    namespace = "com.ray.template.android"
+    namespace = "com.ray.gallery.android"
     compileSdk = libs.versions.sdk.compile.get().toInt()
 
     defaultConfig {
-        applicationId = "com.ray.template.android"
+        applicationId = "com.ray.gallery.android"
         minSdk = libs.versions.sdk.min.get().toInt()
         targetSdk = libs.versions.sdk.target.get().toInt()
         versionCode = libs.versions.app.versioncode.get().toInt()
         versionName = libs.versions.app.versionname.get()
 
         manifestPlaceholders["sentryDsnToken"] = getLocalProperty("SENTRY_DSN_TOKEN")
-        manifestPlaceholders["kakaoAppKey"] = getLocalProperty("KAKAO_APP_KEY")
     }
 
     buildTypes {
@@ -32,14 +31,12 @@ android {
             isShrinkResources = true
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue ("string", "key_kakao_app", getLocalProperty("KAKAO_APP_KEY"))
         }
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue ("string", "key_kakao_app", getLocalProperty("KAKAO_APP_KEY"))
         }
     }
 
@@ -63,10 +60,10 @@ sentry {
     debug = false
 
     // The slug of the Sentry organization to use for uploading proguard mappings/source contexts.
-    org = "ray-sample"
+    org = "ray-gallery"
 
     // The slug of the Sentry project to use for uploading proguard mappings/source contexts.
-    projectName = "ray-sample-android"
+    projectName = "android"
 
     // The authentication token to use for uploading proguard mappings/source contexts.
     // WARNING: Do not expose this token in your build.gradle files, but rather set an environment

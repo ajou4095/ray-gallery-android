@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ray.template.android.presentation"
+    namespace = "com.ray.gallery.android.presentation"
     compileSdk = libs.versions.sdk.compile.get().toInt()
 
     defaultConfig {
