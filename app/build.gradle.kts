@@ -106,7 +106,6 @@ dependencies {
     implementation(libs.bundles.network)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.kakao)
     implementation(libs.bundles.logging)
     debugImplementation(libs.leakcanary)
 }

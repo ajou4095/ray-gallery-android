@@ -64,7 +64,6 @@ dependencies {
     implementation(libs.ted.permission)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.kakao)
     implementation(libs.bundles.logging)
     implementation(libs.androidx.compose.ui.tooling)
 }
