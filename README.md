@@ -8,9 +8,9 @@ Android Gallery 프로젝트 입니다.
 
 ### Build
 
-- Gradle 8.6
-- AGP 8.2.2
-- Kotlin 1.9.22
+- Gradle 8.7
+- AGP 8.4.0
+- Kotlin 1.9.23
 - JDK 17
 - Kotlin DSL
 - Version Catalog
