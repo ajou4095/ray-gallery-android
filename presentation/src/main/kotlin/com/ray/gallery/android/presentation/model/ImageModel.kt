@@ -1,13 +1,12 @@
-package com.ray.gallery.android.presentation.model.gallery
+package com.ray.gallery.android.presentation.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class GalleryImage(
+data class ImageModel(
     val id: Long,
     val filePath: String,
     val name: String,
-    val date: String,
-    val size: Int,
+    val date: String
 ) : Parcelable

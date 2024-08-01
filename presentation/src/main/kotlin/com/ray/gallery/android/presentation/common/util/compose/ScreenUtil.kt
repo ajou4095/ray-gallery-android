@@ -13,10 +13,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.ray.gallery.android.common.util.coroutine.event.eventObserve
 import com.ray.gallery.android.presentation.R
 import com.ray.gallery.android.presentation.common.base.BaseViewModel
 import com.ray.gallery.android.presentation.common.base.ErrorEvent
-import com.ray.gallery.android.common.util.coroutine.event.eventObserve
 import com.ray.gallery.android.presentation.common.view.DialogScreen
 import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineScope
@@ -30,9 +30,7 @@ fun ErrorObserver(
     viewModel: BaseViewModel
 ) {
     var _error: ErrorEvent? by remember { mutableStateOf(null) }
-    val error = _error
-
-    when (error) {
+    when (val error = _error) {
         is ErrorEvent.Client -> {
             DialogScreen(
                 title = stringResource(id = R.string.error_dialog_client_title),

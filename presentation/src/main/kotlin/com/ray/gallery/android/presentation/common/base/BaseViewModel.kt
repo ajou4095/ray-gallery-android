@@ -6,7 +6,6 @@ import com.ray.gallery.android.common.util.coroutine.event.EventFlow
 import com.ray.gallery.android.common.util.coroutine.event.MutableEventFlow
 import com.ray.gallery.android.common.util.coroutine.event.asEventFlow
 import com.ray.gallery.android.domain.usecase.nonfeature.tracking.LogEventUseCase
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 abstract class BaseViewModel : ViewModel() {
     val handler = CoroutineExceptionHandler { _, throwable ->

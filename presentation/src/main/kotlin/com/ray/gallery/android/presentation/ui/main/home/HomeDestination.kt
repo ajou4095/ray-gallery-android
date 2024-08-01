@@ -5,26 +5,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.ray.gallery.android.presentation.common.util.compose.ErrorObserver
 
 fun NavGraphBuilder.homeDestination(
     navController: NavController
 ) {
     composable(
-        route = HomeConstant.ROUTE_STRUCTURE,
-        arguments = listOf(
-            navArgument(HomeConstant.ROUTE_ARGUMENT_SCREEN) {
-                type = NavType.StringType
-                defaultValue = HomeType.values().first().route
-            }
-        )
+        route = HomeConstant.ROUTE
     ) {
         val viewModel: HomeViewModel = hiltViewModel()
 
-        val argument: HomeArgument = let {
+        val argument: HomeArgument = Unit.let {
             val state by viewModel.state.collectAsStateWithLifecycle()
 
             HomeArgument(
@@ -36,13 +29,13 @@ fun NavGraphBuilder.homeDestination(
             )
         }
 
-        val data: HomeData = let {
-            val initialHomeType = viewModel.initialHomeType
-            val homeTypeList = HomeType.values()
+        val data: HomeData = Unit.let {
+            val folderList by viewModel.folderList.collectAsStateWithLifecycle()
+            val galleryImageList = viewModel.galleryImageList.collectAsLazyPagingItems()
 
             HomeData(
-                initialHomeType = initialHomeType,
-                homeTypeList = homeTypeList
+                folderList = folderList,
+                imageModelList = galleryImageList
             )
         }
 

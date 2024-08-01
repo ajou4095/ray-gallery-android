@@ -1,10 +1,13 @@
 package com.ray.gallery.android.data.remote.local.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
-import com.ray.gallery.android.data.remote.local.SharedPreferencesManager
 import com.ray.gallery.android.data.remote.local.database.GalleryDatabase
 import com.ray.gallery.android.data.remote.local.database.sample.SampleDao
+import com.ray.gallery.android.data.remote.local.preferences.PreferencesConstant
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,12 +19,16 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object LocalModule {
 
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+        name = PreferencesConstant.PREFERENCES_NAME
+    )
+
     @Provides
     @Singleton
-    fun provideSharedPreferencesManager(
+    fun provideDataStore(
         @ApplicationContext context: Context
-    ): SharedPreferencesManager {
-        return SharedPreferencesManager(context)
+    ): DataStore<Preferences> {
+        return context.dataStore
     }
 
     @Provides

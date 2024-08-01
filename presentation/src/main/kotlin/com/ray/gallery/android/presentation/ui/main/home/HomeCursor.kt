@@ -1,4 +1,4 @@
-package com.ray.gallery.android.presentation.ui.main.common.gallery
+package com.ray.gallery.android.presentation.ui.main.home
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
@@ -8,13 +8,13 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.os.bundleOf
-import com.ray.gallery.android.presentation.model.gallery.GalleryFolder
-import com.ray.gallery.android.presentation.model.gallery.GalleryImage
+import com.ray.gallery.android.presentation.model.FolderModel
+import com.ray.gallery.android.presentation.model.ImageModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
 
-class GalleryCursor @Inject constructor(
+class HomeCursor @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
@@ -38,8 +38,8 @@ class GalleryCursor @Inject constructor(
         page: Int,
         loadSize: Int,
         currentLocation: String?
-    ): List<GalleryImage> {
-        val galleryImageList = mutableListOf<GalleryImage>()
+    ): List<ImageModel> {
+        val imageModelList = mutableListOf<ImageModel>()
 
         var selection: String? = null
         var selectionArgs: Array<String>? = null
@@ -61,21 +61,20 @@ class GalleryCursor @Inject constructor(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA))
                 val date =
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATE_TAKEN))
-                val image = GalleryImage(
+                val image = ImageModel(
                     id = id,
                     filePath = filePath,
                     name = name,
-                    date = date ?: "",
-                    size = 0,
+                    date = date ?: ""
                 )
-                galleryImageList.add(image)
+                imageModelList.add(image)
             }
         }
-        return galleryImageList
+        return imageModelList
     }
 
-    fun getFolderList(): List<GalleryFolder> {
-        val folderList: ArrayList<GalleryFolder> = arrayListOf(GalleryFolder("최근 항목", ""))
+    fun getFolderList(): List<FolderModel> {
+        val folderList: ArrayList<FolderModel> = arrayListOf(FolderModel("최근 항목", ""))
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val projection = arrayOf(MediaStore.Images.Media.DATA)
         val cursor = context.contentResolver.query(uri, projection, null, null, null)
@@ -83,7 +82,7 @@ class GalleryCursor @Inject constructor(
             while (cursor.moveToNext()) {
                 val columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
                 File(cursor.getString(columnIndex)).parent?.let { filePath ->
-                    val folder = GalleryFolder(filePath.split("/").last(), filePath)
+                    val folder = FolderModel(filePath.split("/").last(), filePath)
                     folderList.find {
                         it.location == filePath
                     } ?: folderList.add(folder)

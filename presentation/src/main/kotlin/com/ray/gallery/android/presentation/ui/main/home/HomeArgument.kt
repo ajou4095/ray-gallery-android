@@ -2,6 +2,7 @@ package com.ray.gallery.android.presentation.ui.main.home
 
 import androidx.compose.runtime.Immutable
 import com.ray.gallery.android.common.util.coroutine.event.EventFlow
+import com.ray.gallery.android.presentation.model.FolderModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 
 @Immutable
@@ -17,7 +18,11 @@ sealed interface HomeState {
     data object Init : HomeState
 }
 
-
 sealed interface HomeEvent
 
-sealed interface HomeIntent
+sealed interface HomeIntent {
+    data object OnGrantPermission : HomeIntent
+    data class OnChangeFolder(
+        val folder: FolderModel
+    ) : HomeIntent
+}

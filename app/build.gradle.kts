@@ -103,8 +103,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
-    implementation(libs.bundles.network)
-
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.logging)
     debugImplementation(libs.leakcanary)

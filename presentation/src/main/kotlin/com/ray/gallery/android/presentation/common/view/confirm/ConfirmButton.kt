@@ -19,12 +19,12 @@ import com.ray.gallery.android.presentation.common.theme.Blue100
 import com.ray.gallery.android.presentation.common.theme.Blue400
 import com.ray.gallery.android.presentation.common.theme.Body1
 import com.ray.gallery.android.presentation.common.theme.Caption2
+import com.ray.gallery.android.presentation.common.theme.GalleryTheme
 import com.ray.gallery.android.presentation.common.theme.Gray300
 import com.ray.gallery.android.presentation.common.theme.Gray400
 import com.ray.gallery.android.presentation.common.theme.Gray700
 import com.ray.gallery.android.presentation.common.theme.Gray800
 import com.ray.gallery.android.presentation.common.theme.Headline2
-import com.ray.gallery.android.presentation.common.theme.GalleryTheme
 import com.ray.gallery.android.presentation.common.theme.White
 
 @Composable

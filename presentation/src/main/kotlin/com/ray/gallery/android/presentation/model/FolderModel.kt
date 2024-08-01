@@ -1,14 +1,14 @@
-package com.ray.gallery.android.presentation.model.gallery
+package com.ray.gallery.android.presentation.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class GalleryFolder(
+data class FolderModel(
     val name: String,
     val location: String?,
 ) : Parcelable {
     companion object {
-        val recent = GalleryFolder("최근 항목", "")
+        val recent = FolderModel("최근 항목", "")
     }
 }

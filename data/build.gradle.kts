@@ -44,7 +44,6 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.bundles.androidx.data)
-    implementation(libs.bundles.network)
     ksp(libs.androidx.room.compiler)
 
     implementation(platform(libs.firebase.bom))

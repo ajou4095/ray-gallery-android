@@ -1,25 +1,25 @@
-package com.ray.gallery.android.presentation.ui.main.common.gallery
+package com.ray.gallery.android.presentation.ui.main.home
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.ray.gallery.android.presentation.model.gallery.GalleryImage
+import com.ray.gallery.android.presentation.model.ImageModel
 
-class GalleryPagingSource(
-    private val galleryCursor: GalleryCursor,
+class HomePagingSource(
+    private val homeCursor: HomeCursor,
     private val currentLocation: String?
-) : PagingSource<Int, GalleryImage>() {
+) : PagingSource<Int, ImageModel>() {
 
-    override fun getRefreshKey(state: PagingState<Int, GalleryImage>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, ImageModel>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, GalleryImage> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ImageModel> {
         return try {
             val position = params.key ?: STARTING_PAGE_IDX
-            val data = galleryCursor.getPhotoList(
+            val data = homeCursor.getPhotoList(
                 page = position,
                 loadSize = params.loadSize,
                 currentLocation = currentLocation
