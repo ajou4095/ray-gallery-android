@@ -1,6 +1,5 @@
 package com.ray.gallery.android.presentation.ui.main.home
 
-import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
@@ -17,88 +16,84 @@ import javax.inject.Inject
 class HomeCursor @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-
-    private val uriExternal: Uri by lazy {
-        MediaStore.Images.Media.getContentUri(
-            MediaStore.VOLUME_EXTERNAL
-        )
+    private val collection: Uri by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(
+                MediaStore.VOLUME_EXTERNAL
+            )
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
     }
 
-    private val projection = arrayOf(
+    private val projection: Array<String> = arrayOf(
+        MediaStore.Images.ImageColumns._ID,
         MediaStore.Images.ImageColumns.DATA,
         MediaStore.Images.ImageColumns.DISPLAY_NAME,
-        MediaStore.Images.ImageColumns.DATE_TAKEN,
-        MediaStore.Images.ImageColumns._ID
+        MediaStore.Images.ImageColumns.DATE_TAKEN
     )
 
-    private val contentResolver by lazy { context.contentResolver }
-    private val sortedOrder = MediaStore.Images.ImageColumns.DATE_TAKEN
+    fun getFolderList(): List<FolderModel> {
+        val folderList: MutableList<FolderModel> = mutableListOf()
 
-    fun getPhotoList(
-        page: Int,
-        loadSize: Int,
-        currentLocation: String?
-    ): List<ImageModel> {
-        val imageModelList = mutableListOf<ImageModel>()
-
-        var selection: String? = null
-        var selectionArgs: Array<String>? = null
-        if (currentLocation != null) {
-            selection = "${MediaStore.Images.Media.DATA} LIKE ?"
-            selectionArgs = arrayOf("%$currentLocation%")
-        }
-
-        val offset = (page - 1) * loadSize
-        val query = getQuery(offset, loadSize, selection, selectionArgs)
-
-        query?.use { cursor ->
+        getCursor()?.use { cursor ->
             while (cursor.moveToNext()) {
-                val id =
-                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID))
-                val name =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DISPLAY_NAME))
-                val filePath =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA))
-                val date =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATE_TAKEN))
+                val id = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
+                    .takeIf { it != -1 }
+                    ?.let { cursor.getLong(it) }
+                    ?: continue
+
+                val name = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME)
+                    .takeIf { it != -1 }
+                    ?.let { cursor.getString(it) }
+                    ?: continue
+
+                val filePath = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+                    .takeIf { it != -1 }
+                    ?.let { cursor.getString(it) }
+                    ?: continue
+
+                val date = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATE_TAKEN)
+                    .takeIf { it != -1 }
+                    ?.let { cursor.getString(it) }
+                    ?: continue
+
+                val parentFilePath = File(filePath).parent ?: continue
+                val parentFileName = File(filePath).parentFile?.name ?: continue
+
                 val image = ImageModel(
                     id = id,
                     filePath = filePath,
                     name = name,
-                    date = date ?: ""
+                    date = date
                 )
-                imageModelList.add(image)
-            }
-        }
-        return imageModelList
-    }
 
-    fun getFolderList(): List<FolderModel> {
-        val folderList: ArrayList<FolderModel> = arrayListOf(FolderModel("최근 항목", ""))
-        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor = context.contentResolver.query(uri, projection, null, null, null)
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                val columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
-                File(cursor.getString(columnIndex)).parent?.let { filePath ->
-                    val folder = FolderModel(filePath.split("/").last(), filePath)
-                    folderList.find {
-                        it.location == filePath
-                    } ?: folderList.add(folder)
+                folderList.indexOfFirst { it.filePath == parentFilePath }
+                    .takeIf { it != -1 }
+                    ?.let { index ->
+                        folderList[index] = folderList[index].copy(
+                            imageList = folderList[index].imageList + image
+                        )
+                    } ?: let {
+                    folderList.add(
+                        FolderModel(
+                            filePath = parentFilePath,
+                            name = parentFileName,
+                            imageList = listOf(image)
+                        )
+                    )
                 }
             }
-            cursor.close()
         }
+
         return folderList
     }
 
-    @SuppressLint("Recycle")
-    private fun getQuery(
-        offset: Int,
-        limit: Int,
-        selection: String?,
-        selectionArgs: Array<String>?,
+    private fun getCursor(
+        offset: Int? = null,
+        limit: Int? = null,
+        selection: String? = null,
+        selectionArgs: Array<String>? = null,
     ): Cursor? {
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val bundle = bundleOf(
@@ -109,14 +104,19 @@ class HomeCursor @Inject constructor(
                 ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
                 ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs,
             )
-            contentResolver.query(uriExternal, projection, bundle, null)
+            context.contentResolver.query(
+                collection,
+                projection,
+                bundle,
+                null
+            )
         } else {
-            contentResolver.query(
-                uriExternal,
+            context.contentResolver.query(
+                collection,
                 projection,
                 selection,
                 selectionArgs,
-                "$sortedOrder DESC LIMIT $limit OFFSET $offset",
+                "${MediaStore.Images.ImageColumns.DATE_TAKEN} DESC LIMIT $limit OFFSET $offset",
             )
         }
     }

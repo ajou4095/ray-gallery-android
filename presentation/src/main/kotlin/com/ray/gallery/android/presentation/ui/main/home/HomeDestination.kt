@@ -6,7 +6,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.ray.gallery.android.presentation.common.util.compose.ErrorObserver
 
 fun NavGraphBuilder.homeDestination(
@@ -31,11 +30,9 @@ fun NavGraphBuilder.homeDestination(
 
         val data: HomeData = Unit.let {
             val folderList by viewModel.folderList.collectAsStateWithLifecycle()
-            val galleryImageList = viewModel.galleryImageList.collectAsLazyPagingItems()
 
             HomeData(
-                folderList = folderList,
-                imageModelList = galleryImageList
+                folderList = folderList
             )
         }
 

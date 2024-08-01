@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -49,8 +50,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.ray.gallery.android.common.util.coroutine.event.MutableEventFlow
@@ -64,7 +63,6 @@ import com.ray.gallery.android.presentation.common.theme.Gray200
 import com.ray.gallery.android.presentation.common.theme.Gray400
 import com.ray.gallery.android.presentation.common.theme.Gray900
 import com.ray.gallery.android.presentation.common.theme.Red900
-import com.ray.gallery.android.presentation.common.theme.Space16
 import com.ray.gallery.android.presentation.common.theme.Space20
 import com.ray.gallery.android.presentation.common.theme.Space24
 import com.ray.gallery.android.presentation.common.theme.Space4
@@ -73,11 +71,9 @@ import com.ray.gallery.android.presentation.common.theme.Space8
 import com.ray.gallery.android.presentation.common.theme.White
 import com.ray.gallery.android.presentation.common.util.compose.LaunchedEffectWithLifecycle
 import com.ray.gallery.android.presentation.common.view.RippleBox
-import com.ray.gallery.android.presentation.common.view.dropdown.TextDropdownMenu
 import com.ray.gallery.android.presentation.model.FolderModel
 import com.ray.gallery.android.presentation.model.ImageModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.plus
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -100,11 +96,11 @@ fun HomeScreen(
 //            onDismissRequest()
         }
     }
-    val selectedList: MutableList<ImageModel> = remember {
-        mutableStateListOf<ImageModel>()
+    val selectedList: MutableList<FolderModel> = remember {
+        mutableStateListOf<FolderModel>()
     }
-    var isDropDownMenuExpanded: Boolean by remember { mutableStateOf(false) }
-    var currentFolder: FolderModel by remember { mutableStateOf(FolderModel.recent) }
+
+    var isSelectMode by remember { mutableStateOf(false) }
 
     ConstraintLayout(
         modifier = Modifier
@@ -130,22 +126,28 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             // TODO : 아무것도 없을 경우 처리
-            items(data.imageModelList.itemCount) { index ->
-                data.imageModelList[index]?.let { gallery ->
-                    HomeScreenItem(
-                        galleryImage = gallery,
-                        selectedList = selectedList,
-                        onClickImage = { image ->
+            items(
+                items = data.folderList,
+                key = { folder -> folder.filePath }
+            ) { folder ->
+                HomeScreenItem(
+                    folderModel = folder,
+                    selectedList = selectedList,
+                    isSelectMode = isSelectMode,
+                    onClickFolder = { folder ->
 
-                        },
-                        onSelectImage = { image ->
-                            selectedList.add(image)
-                        },
-                        onDeleteImage = { image ->
-                            selectedList.removeIf { it.id == image.id }
+                    },
+                    onSelectFolder = { folder ->
+                        isSelectMode = true
+                        selectedList.add(folder)
+                    },
+                    onUnselectFolder = { folder ->
+                        selectedList.remove(folder)
+                        if (selectedList.isEmpty()) {
+                            isSelectMode = false
                         }
-                    )
-                }
+                    }
+                )
             }
         }
         Row(
@@ -168,42 +170,16 @@ fun HomeScreen(
             ) {
                 Icon(
                     modifier = Modifier.size(Space24),
-                    painter = painterResource(id = R.drawable.ic_close),
+                    painter = painterResource(id = R.drawable.ic_menu),
                     contentDescription = null,
                     tint = Gray900
                 )
             }
             Spacer(modifier = Modifier.width(Space20))
-            RippleBox(
-                onClick = {
-                    isDropDownMenuExpanded = true
-                }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = currentFolder.name,
-                        style = Body0.merge(Gray900)
-                    )
-                    Icon(
-                        modifier = Modifier.size(Space16),
-                        painter = painterResource(R.drawable.ic_chevron_down),
-                        contentDescription = null,
-                        tint = Gray900
-                    )
-                }
-                TextDropdownMenu(
-                    items = data.folderList,
-                    label = { it.name },
-                    isExpanded = isDropDownMenuExpanded,
-                    onDismissRequest = { isDropDownMenuExpanded = false },
-                    onClick = { folder ->
-                        currentFolder = folder
-                        intent(HomeIntent.OnChangeFolder(folder))
-                    }
-                )
-            }
+            Text(
+                text = "폴더별",
+                style = Body0.merge(Gray900)
+            )
             Spacer(modifier = Modifier.weight(1f))
             RippleBox(
                 onClick = {
@@ -243,28 +219,29 @@ fun HomeScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreenItem(
-    galleryImage: ImageModel,
-    selectedList: List<ImageModel>,
-    onClickImage: (ImageModel) -> Unit,
-    onSelectImage: (ImageModel) -> Unit,
-    onDeleteImage: (ImageModel) -> Unit
+    folderModel: FolderModel,
+    selectedList: List<FolderModel>,
+    isSelectMode: Boolean,
+    onClickFolder: (FolderModel) -> Unit,
+    onSelectFolder: (FolderModel) -> Unit,
+    onUnselectFolder: (FolderModel) -> Unit
 ) {
     val context = LocalContext.current
 
-    val index = selectedList.indexOfFirst { it.id == galleryImage.id }
+    val index = selectedList.indexOf(folderModel)
 
     Box(
         modifier = Modifier
             .background(Gray200)
             .combinedClickable(
                 onClick = {
-                    if (index > -1) {
-                        onDeleteImage(galleryImage)
-                    } else {
-                        onClickImage(galleryImage)
+                    when {
+                        isSelectMode && index > -1 -> onUnselectFolder(folderModel)
+                        isSelectMode -> onSelectFolder(folderModel)
+                        else -> onClickFolder(folderModel)
                     }
                 },
-                onLongClick = { onSelectImage(galleryImage) }
+                onLongClick = { onSelectFolder(folderModel) }
             )
             .run {
                 if (index > -1) {
@@ -276,7 +253,7 @@ fun HomeScreenItem(
     ) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(context)
-                .data(galleryImage.filePath)
+                .data(folderModel.imageList.first().filePath)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
@@ -369,7 +346,7 @@ fun HomeScreenItem(
                 modifier = Modifier.padding(Space4)
             ) {
                 Text(
-                    text = galleryImage.name,
+                    text = folderModel.name,
                     minLines = 2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -393,8 +370,7 @@ private fun HomeScreenPreview1() {
             handler = CoroutineExceptionHandler { _, _ -> }
         ),
         data = HomeData(
-            folderList = listOf(),
-            imageModelList = MutableStateFlow<PagingData<ImageModel>>(PagingData.empty()).collectAsLazyPagingItems(),
+            folderList = listOf()
         )
     )
 }
@@ -412,10 +388,11 @@ private fun HomeScreenPreview2() {
             handler = CoroutineExceptionHandler { _, _ -> }
         ),
         data = HomeData(
-            folderList = listOf(),
-            imageModelList = MutableStateFlow<PagingData<ImageModel>>(
-                PagingData.from(
-                    listOf(
+            folderList = listOf(
+                FolderModel(
+                    filePath = "/sdcard/0/DCIM",
+                    name = "DCIM",
+                    imageList = listOf(
                         ImageModel(
                             id = 1,
                             filePath = "https://via.placeholder.com/150",
@@ -430,7 +407,7 @@ private fun HomeScreenPreview2() {
                         )
                     )
                 )
-            ).collectAsLazyPagingItems()
+            ),
         )
     )
 }

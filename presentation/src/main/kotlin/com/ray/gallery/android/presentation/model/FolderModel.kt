@@ -5,10 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class FolderModel(
+    val filePath: String,
     val name: String,
-    val location: String?,
-) : Parcelable {
-    companion object {
-        val recent = FolderModel("최근 항목", "")
-    }
-}
+    val imageList: List<ImageModel>
+) : Parcelable
