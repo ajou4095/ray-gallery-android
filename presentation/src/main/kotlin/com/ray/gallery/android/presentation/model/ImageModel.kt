@@ -5,7 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ImageModel(
-    val id: Long,
     val filePath: String,
     val name: String,
     val date: String

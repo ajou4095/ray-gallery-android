@@ -394,13 +394,13 @@ private fun HomeScreenPreview2() {
                     name = "DCIM",
                     imageList = listOf(
                         ImageModel(
-                            id = 1,
+//                            id = 1,
                             filePath = "https://via.placeholder.com/150",
                             name = "image1",
                             date = "2021-09-01"
                         ),
                         ImageModel(
-                            id = 2,
+//                            id = 2,
                             filePath = "https://via.placeholder.com/150",
                             name = "image1",
                             date = "2021-09-01"

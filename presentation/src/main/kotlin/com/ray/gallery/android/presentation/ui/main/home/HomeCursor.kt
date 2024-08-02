@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.os.bundleOf
 import com.ray.gallery.android.presentation.model.FolderModel
@@ -26,23 +27,18 @@ class HomeCursor @Inject constructor(
         }
     }
 
-    private val projection: Array<String> = arrayOf(
-        MediaStore.Images.ImageColumns._ID,
-        MediaStore.Images.ImageColumns.DATA,
-        MediaStore.Images.ImageColumns.DISPLAY_NAME,
-        MediaStore.Images.ImageColumns.DATE_TAKEN
-    )
-
     fun getFolderList(): List<FolderModel> {
         val folderList: MutableList<FolderModel> = mutableListOf()
 
-        getCursor()?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val id = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
-                    .takeIf { it != -1 }
-                    ?.let { cursor.getLong(it) }
-                    ?: continue
+        val projection: Array<String> = arrayOf(
+            MediaStore.Images.ImageColumns._ID,
+            MediaStore.Images.ImageColumns.DATA,
+            MediaStore.Images.ImageColumns.DISPLAY_NAME,
+            MediaStore.Images.ImageColumns.DATE_TAKEN
+        )
 
+        getCursor(projection)?.use { cursor ->
+            while (cursor.moveToNext()) {
                 val name = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME)
                     .takeIf { it != -1 }
                     ?.let { cursor.getString(it) }
@@ -62,7 +58,6 @@ class HomeCursor @Inject constructor(
                 val parentFileName = File(filePath).parentFile?.name ?: continue
 
                 val image = ImageModel(
-                    id = id,
                     filePath = filePath,
                     name = name,
                     date = date
@@ -89,7 +84,98 @@ class HomeCursor @Inject constructor(
         return folderList
     }
 
+    fun getPrivateFolderList(): List<FolderModel> {
+        val folderList: MutableList<FolderModel> = mutableListOf()
+
+        val fileExtensionList = listOf("png", "jpg", "jpeg", "gif")
+
+        fun dfs(parent: File) {
+            parent.listFiles()?.forEach {  child ->
+                if (child.isDirectory) {
+                    dfs(child)
+                } else {
+                    if (fileExtensionList.contains(child.extension)) {
+                        val parentFilePath = child.parent ?: return
+                        val parentFileName = child.parentFile?.name ?: return
+
+                        val image = ImageModel(
+                            filePath = child.absolutePath,
+                            name = child.name,
+                            date = child.lastModified().toString()
+                        )
+
+                        folderList.indexOfFirst { it.filePath == parentFilePath }
+                            .takeIf { it != -1 }
+                            ?.let { index ->
+                                folderList[index] = folderList[index].copy(
+                                    imageList = folderList[index].imageList + image
+                                )
+                            } ?: let {
+                            folderList.add(
+                                FolderModel(
+                                    filePath = parentFilePath,
+                                    name = parentFileName,
+                                    imageList = listOf(image)
+                                )
+                            )
+                        }
+                }
+            }
+                }
+        }
+
+            dfs(Environment.getExternalStorageDirectory())
+
+        return folderList
+
+
+//
+//        val projection = arrayOf(
+//            MediaStore.Files.FileColumns.DATA,
+////            MediaStore.Files.FileColumns.MEDIA_TYPE,
+//            MediaStore.Files.FileColumns.DISPLAY_NAME
+//        )
+////        "${MediaStore.Files.FileColumns.MEDIA_TYPE} = ${MediaStore.Files.FileColumns.MEDIA_TYPE_NONE} AND " +
+//
+////        val where = "${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?"
+////
+////        val params = arrayOf<String>("%${MediaStore.MEDIA_IGNORE_FILENAME}%")
+//
+//        val where = null
+//        val params = null
+//
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+//            val bundle = bundleOf(
+//                ContentResolver.QUERY_ARG_SQL_SELECTION to where,
+//                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to params,
+//            )
+//            context.contentResolver.query(
+//                collection,
+//                projection,
+//                bundle,
+//                null
+//            )
+//        } else {
+//            context.contentResolver.query(
+//                collection,
+//                projection,
+//                where,
+//                params,
+//                null
+//            )
+//        }?.use { cursor ->
+//            println("asdfasdf ${cursor.count}")
+//            while (cursor.moveToNext()) {
+//                println("asdfasdf : search private folder")
+
+//            }
+//        }
+//
+//        return folderList
+    }
+
     private fun getCursor(
+        projection: Array<String>,
         offset: Int? = null,
         limit: Int? = null,
         selection: String? = null,
